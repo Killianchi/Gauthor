@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { PhoneInput } from './components/PhoneInput';
 import { Button } from './components/ui/button';
 import { Benefits } from './components/Benefits';
@@ -12,13 +12,33 @@ export default function App() {
   const [selectedCountry, setSelectedCountry] = useState('US');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleReceiveCall = () => {
+  const handleReceiveCall = async () => {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      alert('Call initiated! Our AI Storyteller will call you shortly.');
+    
+    try {
+      // Send phone number to n8n webhook
+      const response = await fetch('http://localhost:5678/webhook-test/c8a067c0-89c5-4db8-89e4-f7c7e6f3bf76', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: phoneNumber,
+          country: selectedCountry
+        })
+      });
+
+      if (response.ok) {
+        alert('Call initiated! Our AI Storyteller will call you shortly.');
+      } else {
+        throw new Error('Failed to initiate call');
+      }
+    } catch (error) {
+      console.error('Error calling webhook:', error);
+      alert('Sorry, there was an error initiating your call. Please try again.');
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const isPhoneValid = phoneNumber.replace(/\D/g, '').length >= 10;
